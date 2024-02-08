@@ -1,5 +1,6 @@
 package io.github.ultreon.explosivestuffs.item;
 
+import io.github.ultreon.explosivestuffs.Config;
 import io.github.ultreon.explosivestuffs.ExplosiveStuffs;
 import io.github.ultreon.explosivestuffs.entity.OrbitalStrike;
 import net.minecraft.core.BlockPos;
@@ -15,20 +16,20 @@ import org.jetbrains.annotations.NotNull;
 import team.lodestar.lodestone.handlers.FireEffectHandler;
 import team.lodestar.lodestone.systems.fireeffect.FireEffectInstance;
 
-public class OrbitalCanonItem extends Item {
-    public OrbitalCanonItem() {
+public class OrbitalCannonItem extends Item {
+    public OrbitalCannonItem() {
         super(new Properties());
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand hand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand hand) {
         player.getCooldowns().addCooldown(this, 5);
 
-        BlockHitResult clip = level.clip(new ClipContext(player.getEyePosition(), player.getEyePosition().add(player.getLookAngle().scale(128)), ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+        BlockHitResult clip = level.clip(new ClipContext(player.getEyePosition(), player.getEyePosition().add(player.getLookAngle().scale(Config.STRIKE_RANGE.get())), ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
         BlockPos location = clip.getBlockPos();
 
         if (!level.isClientSide) {
-            OrbitalStrike beamStrike = new OrbitalStrike(level, location.getX(), location.getY(), location.getZ(), player);
+            OrbitalStrike beamStrike = new OrbitalStrike(level, location.getX(), location.getZ(), player);
             FireEffectHandler.setCustomFireInstance(beamStrike, new FireEffectInstance(ExplosiveStuffs.ORBITAL_STRIKE_EFFECT_TYPE));
 
             level.addFreshEntity(beamStrike);

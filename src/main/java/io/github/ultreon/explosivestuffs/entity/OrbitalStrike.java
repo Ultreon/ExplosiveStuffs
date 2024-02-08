@@ -1,5 +1,6 @@
 package io.github.ultreon.explosivestuffs.entity;
 
+import io.github.ultreon.explosivestuffs.Config;
 import io.github.ultreon.explosivestuffs.ExplosiveStuffs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -8,9 +9,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,14 +17,11 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.TntBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
-import net.minecraftforge.server.ServerLifecycleHooks;
-import team.lodestar.lodestone.handlers.FireEffectHandler;
 import team.lodestar.lodestone.handlers.ScreenshakeHandler;
 import team.lodestar.lodestone.systems.easing.Easing;
 import team.lodestar.lodestone.systems.particle.SimpleParticleOptions;
@@ -39,24 +35,23 @@ import java.awt.*;
 
 public class OrbitalStrike extends Entity {
     public static final EntityDataAccessor<Integer> DATA_BEAM_Y = SynchedEntityData.defineId(OrbitalStrike.class, EntityDataSerializers.INT);
-    private final int height = 150;
     private Player trigger = null;
     private int remainingTicks = 10;
-    private int radius = 15; // Set the desired radius of the spherical area. DANGEROUS ON HIGH RADIUS
-    private boolean tunneling = false;
+    private int radius = Config.IMPACT_RADIUS.get(); // Set the desired radius of the spherical area. DANGEROUS ON HIGH RADIUS
+    private final boolean tunneling = Config.TUNNELING.get();
     private Color startingColor = new Color(100, 130, 255);
     private Color endingColor = new Color(60, 100, 200);
-    private float beamSize = 1 / 8f;
+    private float beamSize = Config.RELATIVE_BEAM_SIZE.get().floatValue();
     private boolean stopMoving = false;
 
     public OrbitalStrike(EntityType<OrbitalStrike> orbitalStrikeEntityType, Level level) {
         super(orbitalStrikeEntityType, level);
     }
 
-    public OrbitalStrike(Level level, double x, double y, double z, Player trigger) {
+    public OrbitalStrike(Level level, double x, double z, Player trigger) {
         this(ExplosiveStuffs.ORBITAL_STRIKE.get(), level);
 
-        y = 320;
+        double y = level.getMaxBuildHeight();
 
         this.entityData.set(DATA_BEAM_Y, (int) y);
 
@@ -67,7 +62,7 @@ public class OrbitalStrike extends Entity {
 
         setBoundingBox(new AABB(
                 -radius * Math.PI, -radius * Math.PI, -radius * Math.PI,
-                +radius * Math.PI, +radius * Math.PI, +radius * Math.PI));
+                radius * Math.PI, radius * Math.PI, radius * Math.PI));
     }
 
     @Override

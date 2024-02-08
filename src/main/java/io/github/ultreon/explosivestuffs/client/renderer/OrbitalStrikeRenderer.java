@@ -13,17 +13,17 @@ public class OrbitalStrikeRenderer extends EntityRenderer<OrbitalStrike> {
     }
 
     @Override
-    public boolean shouldRender(OrbitalStrike p_114491_, Frustum p_114492_, double p_114493_, double p_114494_, double p_114495_) {
+    public boolean shouldRender(@NotNull OrbitalStrike p_114491_, @NotNull Frustum p_114492_, double p_114493_, double p_114494_, double p_114495_) {
         return true;
     }
 
     @Override
-    protected boolean shouldShowName(OrbitalStrike p_114504_) {
+    protected boolean shouldShowName(@NotNull OrbitalStrike p_114504_) {
         return false;
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(OrbitalStrike beamStrike) {
+    public @NotNull ResourceLocation getTextureLocation(@NotNull OrbitalStrike beamStrike) {
         return new ResourceLocation("explosivestuffs", "textures/entity/orbital_strike.png");
     }
 }
