@@ -1,0 +1,37 @@
+{
+	"credit": "Made with Blockbench",
+	"parent": "item/generated",
+	"textures": {
+		"layer0": "explosivestuffs:item/orbital_canon"
+	},
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [0, 0, -45],
+			"translation": [-6, 3.5, 4]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [0, 0, 45],
+			"translation": [-6, 3.5, 4]
+		},
+		"firstperson_righthand": {
+			"rotation": [-80, 0, -45],
+			"translation": [-9, 5.25, 1]
+		},
+		"firstperson_lefthand": {
+			"rotation": [-67, 0, 45],
+			"translation": [-9, 5.25, 1]
+		},
+		"ground": {
+			"rotation": [-90, 0, 0],
+			"translation": [0, 3, 0],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"head": {
+			"rotation": [-90, 0, -45],
+			"translation": [0, 0.5, -9.75]
+		},
+		"fixed": {
+			"translation": [0, 0, 7.5]
+		}
+	}
+}
