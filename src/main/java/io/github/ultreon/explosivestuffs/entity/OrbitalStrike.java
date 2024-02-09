@@ -4,16 +4,24 @@ import io.github.ultreon.explosivestuffs.Config;
 import io.github.ultreon.explosivestuffs.ExplosiveStuffs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -43,6 +51,7 @@ public class OrbitalStrike extends Entity {
     private Color endingColor = new Color(60, 100, 200);
     private float beamSize = Config.RELATIVE_BEAM_SIZE.get().floatValue();
     private boolean stopMoving = false;
+    private int soundTick;
 
     public OrbitalStrike(EntityType<OrbitalStrike> orbitalStrikeEntityType, Level level) {
         super(orbitalStrikeEntityType, level);
@@ -78,7 +87,14 @@ public class OrbitalStrike extends Entity {
             }
         }
 
-        this.move(MoverType.SELF, new Vec3(0, -radius, 0));
+        if (soundTick++ % 10 == 0) {
+            for (int i = (int) getY(); i < level().getMaxBuildHeight(); i += 50) {
+                this.level().playSound(null, this.position().x, i, this.position().z, ExplosiveStuffs.BEAM_SOUND.get(), SoundSource.AMBIENT, 1.0f, 1.0f);
+            }
+        }
+
+        if (!stopMoving)
+            this.move(MoverType.SELF, new Vec3(0, -radius, 0));
         if (!onGround()) {
             return;
         }
@@ -87,11 +103,22 @@ public class OrbitalStrike extends Entity {
             if (remainingTicks-- <= 0) this.discard();
             if (remainingTicks % 4 == 0 && tunneling) this.explode();
             if (remainingTicks == 5 && !tunneling) this.explode();
+        } else {
+            if (remainingTicks-- <= 0) this.discard();
+            if (remainingTicks % 4 == 0 && tunneling) this.explodeClient();
+            if (remainingTicks == 5 && !tunneling) this.explodeClient();
         }
 
         if (level().isClientSide) {
             spawnExplosion(this.level(), this.position());
         }
+    }
+
+    private void explodeClient() {
+        PositionedScreenshakeInstance instance = new PositionedScreenshakeInstance(radius * 5, position(), radius * 2, radius * 10);
+        ScreenshakeHandler.addScreenshake(instance);
+
+        this.stopMoving = true;
     }
 
     private void explode() {
@@ -101,26 +128,44 @@ public class OrbitalStrike extends Entity {
         PositionedScreenshakeInstance instance = new PositionedScreenshakeInstance(radius * 5, position(), radius * 2, radius * 10);
         ScreenshakeHandler.addScreenshake(instance);
 
+        this.stopMoving = true;
+
         // Iterate over the blocks within the spherical area
         for (BlockPos pos : BlockPos.betweenClosed(centerPos.offset(-radius - 4, -radius - 4, -radius - 4), centerPos.offset(radius + 4, radius + 4, radius + 4))) {
+            BlockState blockState = level().getBlockState(pos);
+            if (blockState.getBlock().getSpeedFactor() < 0) continue;
             if (pos.distSqr(centerPos) <= radius * radius) {
                 level().setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState()); // Destroy the block at the current position
             } else if (pos.distSqr(centerPos) <= (radius * radius) + 24 * radius / 10f) {
-                BlockState blockState = level().getBlockState(pos);
-                if (blockState.is(BlockTags.SMELTS_TO_GLASS) || blockState.is(BlockTags.SAND) || blockState.is(Tags.Blocks.SANDSTONE))
-                    level().setBlockAndUpdate(pos, Blocks.GLASS.defaultBlockState());
-                else if (blockState.isFlammable(level(), pos, Direction.UP))
-                    catchFire(pos, blockState);
-                else
-                    annihilateSurroudingBlocks(pos);
+                transformBlocks(pos, blockState);
             }
         }
 
-        level().getEntities(EntityTypeTest.forClass(LivingEntity.class), new AABB(centerPos.offset(-radius * 2, -radius * 2, -radius * 2), centerPos.offset(radius * 2, radius * 2, radius * 2)), entity -> true).forEach(livingEntity -> {
-            double damage = 50f * radius * 2 * (radius * 2 - livingEntity.position().distanceTo(centerPos.getCenter()));
+        level().getEntities(EntityTypeTest.forClass(Entity.class), new AABB(centerPos.offset(-radius * 2, -radius * 2, -radius * 2), centerPos.offset(radius * 2, radius * 2, radius * 2)), entity -> true).forEach(entity -> {
+            double damage = 50f * radius * 2 * (radius * 2 - entity.position().distanceTo(centerPos.getCenter()));
             if (damage <= 0f) return;
-            livingEntity.hurt(level().damageSources().explosion(this, null), (float) damage);
+
+            Registry<DamageType> damageTypes = level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
+            ResourceKey<DamageType> damageKey = ExplosiveStuffs.ATOMIZED_DAMAGE;
+            Holder.Reference<DamageType> damageType = damageTypes.getHolderOrThrow(damageKey);
+
+            if (entity.position().distanceTo(centerPos.getCenter()) < radius) {
+                DamageSource damageSource = new DamageSource(damageType, trigger);
+                entity.hurt(damageSource, (float) damage);
+            } else {
+                DamageSource damageSource = new DamageSource(damageType, trigger);
+                entity.hurt(damageSource, (float) damage / 2f);
+            }
         });
+    }
+
+    private void transformBlocks(BlockPos pos, BlockState blockState) {
+        if (blockState.is(BlockTags.SMELTS_TO_GLASS) || blockState.is(BlockTags.SAND) || blockState.is(Tags.Blocks.SANDSTONE))
+            level().setBlockAndUpdate(pos, Blocks.GLASS.defaultBlockState());
+        else if (blockState.isFlammable(level(), pos, Direction.UP))
+            catchFire(pos, blockState);
+        else
+            annihilateSurroudingBlocks(pos);
     }
 
     private void annihilateSurroudingBlocks(BlockPos pos) {
@@ -145,14 +190,14 @@ public class OrbitalStrike extends Entity {
                 .setTransparencyData(GenericParticleData.create(0.18f, 0.18f, 0f).setEasing(Easing.LINEAR, Easing.CIRC_OUT).build())
                 .setColorData(ColorParticleData.create(startingColor, endingColor).setCoefficient(5f).setEasing(Easing.CIRC_IN_OUT).build())
                 .setSpinData(SpinParticleData.create(0.0f, 0.0f).setSpinOffset((level.getGameTime() * 0.1f)).setEasing(Easing.QUARTIC_IN).build())
-                .setRandomOffset(radius)
+                .setRandomOffset(radius * 1.2f)
                 .setLifetime(30)
                 .addMotion(0, 0f, 0)
                 .enableNoClip()
                 .enableForcedSpawn()
                 .setDiscardFunction(SimpleParticleOptions.ParticleDiscardFunctionType.NONE)
                 .disableCull()
-                .repeat(level, pos.x, pos.y, pos.z, 5 * radius);
+                .repeat(level, pos.x, pos.y, pos.z, (int) (5 * radius * 1.2f));
     }
 
     private void spawnBeam(Level level, Vec3 pos, int y) {
@@ -194,7 +239,7 @@ public class OrbitalStrike extends Entity {
         compoundTag.putInt("beamY", this.entityData.get(DATA_BEAM_Y));
         compoundTag.putBoolean("stopMoving", stopMoving);
     }
-    
+
     public void setRemainingTicks(int ticks) {
         remainingTicks = ticks;
     }

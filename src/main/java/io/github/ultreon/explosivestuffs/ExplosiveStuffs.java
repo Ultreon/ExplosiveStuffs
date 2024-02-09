@@ -10,7 +10,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.CreativeModeTab;
@@ -46,10 +49,13 @@ public class ExplosiveStuffs {
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MOD_ID);
     public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, MOD_ID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
+    public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MOD_ID);
 
     public static final RegistryObject<OrbitalCannonItem> ORBITAL_CANNON = ITEMS.register("orbital_cannon", OrbitalCannonItem::new);
     public static final RegistryObject<EntityType<OrbitalStrike>> ORBITAL_STRIKE = ENTITIES.register("orbital_strike", () -> EntityType.Builder.<OrbitalStrike>of(OrbitalStrike::new, MobCategory.MISC).sized(0.5f, 0.5f).build("orbital_strike"));
     public static final RegistryObject<LodestoneParticleType> CIRCLE_PARTICLE = PARTICLES.register("circle", LodestoneParticleType::new);
+    public static final RegistryObject<SoundEvent> ORBITAL_CANNON_TARGET_SOUND = SOUNDS.register("orbital_cannon_target", () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(MOD_ID, "item.orbital_cannon.target")));
+    public static final RegistryObject<SoundEvent> BEAM_SOUND = SOUNDS.register("beam", () -> SoundEvent.createFixedRangeEvent(new ResourceLocation(MOD_ID, "item.orbital_cannon.beam"), 70f));
 
     public static final EntityDataSerializer<Double> DOUBLE_SERIALIZER = EntityDataSerializer.simple(FriendlyByteBuf::writeDouble, FriendlyByteBuf::readDouble);
 
@@ -62,6 +68,7 @@ public class ExplosiveStuffs {
             .displayItems((parameters, output) -> {
                 output.accept(ORBITAL_CANNON.get());
             }).build());
+    public static final ResourceKey<DamageType> ATOMIZED_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(MOD_ID, "atomized"));
 
     public ExplosiveStuffs() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -71,6 +78,7 @@ public class ExplosiveStuffs {
         // Register the Deferred Register to the mod event bus
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
+        SOUNDS.register(modEventBus);
         ENTITIES.register(modEventBus);
         PARTICLES.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);

@@ -7,11 +7,11 @@
 	"display": {
 		"thirdperson_righthand": {
 			"rotation": [0, 0, -45],
-			"translation": [-6, 3.5, 4]
+			"translation": [-6, 3.5, 1.5]
 		},
 		"thirdperson_lefthand": {
 			"rotation": [0, 0, 45],
-			"translation": [-6, 3.5, 4]
+			"translation": [-6, 3.5, 1.5]
 		},
 		"firstperson_righthand": {
 			"rotation": [-80, 0, -45],

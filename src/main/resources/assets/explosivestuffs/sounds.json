@@ -1,0 +1,21 @@
+{
+  "item.orbital_cannon.target": {
+    "sounds": [
+      {
+        "name": "explosivestuffs:targetted",
+        "volume": 0.4
+      }
+    ],
+    "subtitle": "subtitles.explosivestuffs.item.orbital_cannon.target"
+  },
+  "item.orbital_cannon.beam": {
+    "sounds": [
+      {
+        "name": "explosivestuffs:beam",
+        "volume": 1.0,
+        "pitch": 0.7
+      }
+    ],
+    "subtitle": "subtitles.explosivestuffs.item.orbital_cannon.beam"
+  }
+}

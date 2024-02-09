@@ -1,4 +1,10 @@
 {
   "item.explosivestuffs.orbital_cannon": "Orbital Cannon",
-  "itemGroup.explosivestuffs.explosive_stuffs_tab": "Explosive Stuffs"
+  "itemGroup.explosivestuffs.explosive_stuffs_tab": "Explosive Stuffs",
+  "death.attack.explosivestuffs.atomized": "%s was atomized",
+  "death.attack.explosivestuffs.atomized.player": "%1$s was atomized by %2$s",
+  "death.attack.explosivestuffs.atomized.item": "%1$s was atomized by %2$s using %3$s",
+  "entity.explosivestuffs.orbital_strike": "Orbital Strike",
+  "subtitles.explosivestuffs.item.orbital_cannon.target": "Orbital cannon activated",
+  "subtitles.explosivestuffs.item.orbital_cannon.beam": "Orbital strike incoming"
 }

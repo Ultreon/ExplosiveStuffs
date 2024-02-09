@@ -1,5 +1,6 @@
 package io.github.ultreon.explosivestuffs;
 
+import com.google.gson.JsonArray;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -34,6 +35,10 @@ public class Config
     public static final ForgeConfigSpec.IntValue STRIKE_RANGE = BUILDER
             .comment("Whether the orbital strike should tunnel through blocks")
             .defineInRange("orbitalStrike.strikeRange", 128, 5, 200);
+
+    public static final ForgeConfigSpec.IntValue COOLDOWN = BUILDER
+            .comment("How long the orbital strike cooldown should be in ticks")
+            .defineInRange("orbitalStrike.cooldown", 100, 10, 200);
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
