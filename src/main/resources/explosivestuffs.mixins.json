@@ -1,9 +1,8 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "io.github.ultreon.explosive.mixin",
+  "package": "io.github.ultreon.explosivestuffs.mixin",
   "compatibilityLevel": "JAVA_8",
-  "refmap": "ExplosiveStuffs.refmap.json",
   "mixins": [
   ],
   "client": [
